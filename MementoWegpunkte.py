@@ -3,9 +3,9 @@ import xml.etree.ElementTree as ET
 from MementoToken import MEMENTO_TOKEN
 
 # API-Endpunkte
-WAYPOINTS_API_URL = f'https://api.mementodatabase.com/v1/libraries/2jwnhsD0k/search?token={MEMENTO_TOKEN}&fields=0,31,1,15,27,28&q=status:active&pageSize=200'
+WAYPOINTS_API_URL = f'https://api.mementodatabase.com/v1/libraries/2jwnhsD0k/search?token={MEMENTO_TOKEN}&fields=0,31,1,15,14,27,28&q=status:active&pageSize=200'
 SYMBOLS_API_URL = f'https://api.mementodatabase.com/v1/libraries/XPiUCnkr2/search?token={MEMENTO_TOKEN}&fields=0&q=status:active&pageSize=200'
-MAPPING_WAYPOINTS = {0: 'name', 31: 'comment', 1: 'type', 15: 'icon', 27: 'latitude', 28: 'longitude'}
+MAPPING_WAYPOINTS = {0: 'name', 31: 'comment', 1: 'type', 15: 'icon', 14: 'color', 27: 'latitude', 28: 'longitude'}
 
 def fetch_data(url):
     response = requests.get(url)
@@ -23,7 +23,7 @@ def update_waypoints_with_symbols(waypoints, symbols):
     return waypoints
 
 def transform_data(data):
-    field_names = ['name', 'comment', 'type', 'symbol', 'latitude', 'longitude']
+    field_names = ['name', 'comment', 'type', 'symbol', 'color', 'latitude', 'longitude']
     
     for entry in data:
         fields = entry['fields']
