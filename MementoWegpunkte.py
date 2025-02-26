@@ -27,11 +27,11 @@ def transform_data(data):
     
     for entry in data:
         fields = entry['fields']
-        transformed_fields = []
+        transformed_fields = {}
         
         for idx, field in enumerate(fields):
             field_name = field_names[idx]
-            transformed_fields.append({field_name: field['value']})
+            transformed_fields |= {field_name: field['value']}
         
         entry['fields'] = transformed_fields
     
@@ -40,13 +40,13 @@ def transform_data(data):
 def create_gpx(data, filename):
     gpx = ET.Element('gpx')
     for loc in data:
-        wpt = ET.SubElement(gpx, 'wpt', lat=str(loc['fields'][4]['latitude']), lon=str(loc['fields'][5]['longitude']))
+        wpt = ET.SubElement(gpx, 'wpt', lat=str(loc['fields']['latitude']), lon=str(loc['fields']['longitude']))
         name = ET.SubElement(wpt, 'name')
-        name.text = loc['fields'][0]['name']
+        name.text = loc['fields']['name']
         cmt = ET.SubElement(wpt, 'cmt')
-        cmt.text = loc['fields'][1]['comment']
+        cmt.text = loc['fields']['comment']
         sym = ET.SubElement(wpt, 'sym')
-        sym.text = loc['fields'][3]['symbol']
+        sym.text = loc['fields']['symbol']
         typ = ET.SubElement(wpt, 'type')
         typ.text = 'Memento'
         
@@ -62,6 +62,7 @@ def main():
     
     updated_waypoints = update_waypoints_with_symbols(waypoints, symbols)
     transformed_waypoints = transform_data(updated_waypoints)
+    
     create_gpx(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.gpx')
     
     print("Aktualisierte Wegpunkte:")
