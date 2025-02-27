@@ -1,4 +1,5 @@
 import requests
+import json
 import xml.etree.ElementTree as ET
 from MementoToken import MEMENTO_TOKEN
 
@@ -22,6 +23,7 @@ def update_waypoints_with_symbols(waypoints, symbols):
             
     return waypoints
 
+
 def transform_data(data):
     field_names = ['name', 'comment', 'type', 'symbol', 'color', 'latitude', 'longitude']
     
@@ -37,6 +39,7 @@ def transform_data(data):
     
     return data
 
+
 def create_gpx(data, filename):
     gpx = ET.Element('gpx')
     for loc in data:
@@ -51,10 +54,36 @@ def create_gpx(data, filename):
         typ.text = 'Memento'
         
     tree = ET.ElementTree(gpx)
-    with open(filename, 'wb') as f:
-        tree.write(f, encoding='utf-8', xml_declaration=True)    
+    with open(filename, 'wb') as gpx_file:
+        tree.write(gpx_file, encoding='utf-8', xml_declaration=True)    
         
     return gpx
+
+
+def create_json(data, filename):
+    output = {
+        "id": 1,
+        "points": [],
+        "polylines": []
+    }
+    
+    for idx, item in enumerate(data):
+        point = {
+            "uid": str(idx + 1),
+            "name": item['fields']['name'],
+            "lat": item['fields']['latitude'],
+            "lon": item['fields']['longitude'],
+            "format": "coords_dmm",
+            "color": item['fields']['color'],
+            "edit": True
+        }
+        output["points"].append(point)
+        
+    with open(filename, 'w') as json_file:
+        json.dump(output, json_file, indent=4)
+
+    return output
+
 
 def main():
     waypoints = fetch_data(WAYPOINTS_API_URL)
@@ -64,6 +93,7 @@ def main():
     transformed_waypoints = transform_data(updated_waypoints)
     
     create_gpx(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.gpx')
+    create_json(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.json')
     
     print("Aktualisierte Wegpunkte:")
     print(transformed_waypoints)
