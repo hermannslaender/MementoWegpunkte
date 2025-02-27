@@ -3,7 +3,7 @@ import json
 import xml.etree.ElementTree as ET
 from MementoToken import MEMENTO_TOKEN
 
-# API-Endpunkte
+# API-Endpoint
 WAYPOINTS_API_URL = f'https://api.mementodatabase.com/v1/libraries/2jwnhsD0k/search?token={MEMENTO_TOKEN}&fields=0,31,1,15,14,27,28&q=status:active&pageSize=200'
 SYMBOLS_API_URL = f'https://api.mementodatabase.com/v1/libraries/XPiUCnkr2/search?token={MEMENTO_TOKEN}&fields=0&q=status:active&pageSize=200'
 MAPPING_WAYPOINTS = {0: 'name', 31: 'comment', 1: 'type', 15: 'icon', 14: 'color', 27: 'latitude', 28: 'longitude'}
@@ -13,12 +13,13 @@ def fetch_data(url):
     response.raise_for_status()
     return response.json()['entries']
 
+
 def update_waypoints_with_symbols(waypoints, symbols):
     symbol_dict = {symbol['id']: symbol['fields'][0]['value'] for symbol in symbols}
     
     for waypoint in waypoints:
         for field in waypoint['fields']:
-            if field['id'] == 15:  # Feld "symbol"
+            if field['id'] == 15:  # Field "symbol"
                 field['value'] = [symbol_dict.get(ref, ref) for ref in field['value']][0]
             
     return waypoints
@@ -97,6 +98,7 @@ def main():
     
     print("Aktualisierte Wegpunkte:")
     print(transformed_waypoints)
+
 
 if __name__ == "__main__":
     main()
