@@ -92,7 +92,7 @@ def main():
     
     updated_waypoints = update_waypoints_with_symbols(waypoints, symbols)
     transformed_waypoints = transform_data(updated_waypoints)
-    
+
     create_gpx(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.gpx')
     create_json(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.json')
     
