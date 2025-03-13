@@ -3,10 +3,44 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
 import webbrowser
+import requests
+from MementoToken import MEMENTO_TOKEN
+WAYPOINTS_API_URL = f'https://api.mementodatabase.com/v1/libraries/2jwnhsD0k/entries?token={MEMENTO_TOKEN}'
+
+def send_to_Memento(name = 'Test 1', comment = 'Kommentar 1', lat = 51.000000, lon = 8.000000):
+    headers = {
+        "Authorization": f"Bearer {MEMENTO_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    values = "{'fields':[{'id': 0,'value': '" + name + "'},{'id': 31,'value': '" + comment + "'},{'id': 1,'value': 'neu'},{'id': 14,'value': '#ffffff'},{'id': 2,'value': 'Dezimal'},{'id': 10,'value': " + str(lat) + "},{'id': 11,'value': " + str(lon) + "}]}"
+    #print(values)
+
+    response = requests.post(WAYPOINTS_API_URL, headers=headers, data=values)
+
+    if response.status_code == 201:
+        print("Eintrag erfolgreich erstellt!")
+        print("Antwort:", response.json())
+        print()
+    else:
+        print("Fehler beim Erstellen des Eintrags.")
+        print("Statuscode:", response.status_code)
+        print("Antwort:", response.text)
+        print()
 
 
-def send_to_Memento():
-    pass
+def send_all_rows_from_table():
+    while len(table.get_children()):
+        first_id = table.get_children()[0]
+        name = table.item(first_id, 'values')[0]
+        comment = table.item(first_id, 'values')[4]
+        lat = table.item(first_id, 'values')[2]
+        lon = table.item(first_id, 'values')[3]
+
+        send_to_Memento(name, comment, lat, lon)
+        table.delete(first_id)
+
+        check_table()
 
 
 def check_table(*args):
@@ -66,6 +100,9 @@ def delete_selected():
     for item in selected_items:
         table.delete(item)
 
+    check_table()
+
+
 
 window = tk.Tk()
 window.geometry('1100x600')
@@ -95,7 +132,7 @@ table.configure(yscrollcommand=scrollbar.set)
 
 btn_load = ttk.Button(window, text='Datei laden', command=load_gpx)
 btn_delete = ttk.Button(window, text='markierte Zeilen löschen', command=delete_selected)
-btn_Memento = ttk.Button(window, text='Liste an Memento senden', command=send_to_Memento)
+btn_Memento = ttk.Button(window, text='Liste an Memento senden', command=send_all_rows_from_table)
 
 lbl_hint = ttk.Label(window, text='keine Daten geladen')
 
@@ -105,7 +142,7 @@ btn_load.pack(side='left', padx=10, pady=10)
 btn_delete.pack(side='left', padx=10, pady=10)
 btn_delete.config(state=tk.DISABLED)
 btn_Memento.pack(side='left', padx=10, pady=10)
-btn_Memento.config(state=tk.DISABLED)
+# btn_Memento.config(state=tk.DISABLED)
 
 
 table.bind('<Double-1>', open_map)
