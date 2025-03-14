@@ -5,15 +5,17 @@ from tkinter import ttk
 import webbrowser
 import requests
 from MementoToken import MEMENTO_TOKEN
-WAYPOINTS_API_URL = f'https://api.mementryodatabase.com/v1/libraries/2jwnhsD0k/entryries?token={MEMENTO_TOKEN}'
+WAYPOINTS_API_URL = f'https://api.mementodatabase.com/v1/libraries/2jwnhsD0k/entries?token={MEMENTO_TOKEN}'
 
 
-def save_waypoint_change(entry_name, entry_comment, entry_lat, entry_lon):
+def save_waypoint_change(selected_item, entry_name, entry_symbol, entry_lat, entry_lon, entry_comment, edit_window):
     name = entry_name.get()
     comment = entry_comment.get()
     lat = entry_lat.get()
     lon = entry_lon.get()
-    print(f'speichern: {name = }   {comment = }   {lat = }    {lon = }')
+    print(f'speichern: {selected_item = }    {name = }   {comment = }   {lat = }    {lon = }')
+    table.item(selected_item, values=(name, entry_symbol,lat, lon, comment))
+    edit_window.destroy()
 
 
 def edit_selected():
@@ -22,52 +24,46 @@ def edit_selected():
     print(f'{values = }')
     name, comment, lat, lon = values[0], values[4], values[2], values[3]
 
-
     edit_window = tk.Tk()
     edit_window.geometry('600x220')
-
     edit_window.title('GarminWegpunkt bearbeiten')
 
-    # Label und entry für Name
     label_name = ttk.Label(edit_window, text="Name:")
     label_name.grid(row=0, column=0, padx=10, pady=10, sticky="W")
     entry_name = ttk.Entry(edit_window, width=30)
     entry_name.grid(row=0, column=1, padx=10, pady=10, sticky="W")
     entry_name.insert(0, name)
 
-    # Label und entry für Bemerkung
     label_comment = ttk.Label(edit_window, text="Bemerkung:")
     label_comment.grid(row=1, column=0, padx=10, pady=10, sticky="W")
     entry_comment = ttk.Entry(edit_window, width=80)
     entry_comment.grid(row=1, column=1, padx=10, pady=10, sticky="W")
     entry_comment.insert(0, comment)
     
-    # Label und entry für Latitude
     label_lat = ttk.Label(edit_window, text="Latitude:")
     label_lat.grid(row=2, column=0, padx=10, pady=10, sticky="W")
     entry_lat = ttk.Entry(edit_window, width=30)
     entry_lat.grid(row=2, column=1, padx=10, pady=10, sticky="W")
     entry_lat.insert(0, lat)
 
-    # Label und entry für Longitude
     label_lon = ttk.Label(edit_window, text="Longitude:")
     label_lon.grid(row=3, column=0, padx=10, pady=10, sticky="W")
     entry_lon = ttk.Entry(edit_window, width=30)
     entry_lon.grid(row=3, column=1, padx=10, pady=10, sticky="W")
     entry_lon.insert(0, lon)
 
-    btn_save = ttk.Button(edit_window, text='speichern', command=lambda: save_waypoint_change(entry_name, entry_comment, entry_lat, entry_lon))
+    btn_save = ttk.Button(edit_window, text='speichern', command=lambda: save_waypoint_change(selected_item, entry_name, values[1], entry_lat, entry_lon, entry_comment, edit_window))
     btn_save.grid(row=4, column =1, padx=10, pady=10, sticky="W")
 
 
-def send_to_Mementryo(name = 'Test 1', commentry = 'Kommentryar 1', lat = 51.000000, lon = 8.000000):
+def send_to_Memento(name = 'Test 1', commentry = 'Kommentar 1', lat = 51.000000, lon = 8.000000):
     headers = {
         "Authorization": f"Bearer {MEMENTO_TOKEN}",
-        "Contentry-Type": "application/json"
+        "Content-Type": "application/json"
     }
 
     values = "{'fields':[{'id': 0,'value': '" + name + "'},{'id': 31,'value': '" + commentry + "'},{'id': 1,'value': 'neu'},{'id': 14,'value': '#ffffff'},{'id': 2,'value': 'Dezimal'},{'id': 10,'value': " + str(lat) + "},{'id': 11,'value': " + str(lon) + "}]}"
-    #print(values)
+    print(f'{values = }')
 
     response = requests.post(WAYPOINTS_API_URL, headers=headers, data=values)
 
@@ -81,17 +77,22 @@ def send_to_Mementryo(name = 'Test 1', commentry = 'Kommentryar 1', lat = 51.000
         print("Antwort:", response.text)
         print()
 
+    return response.status_code
+
 
 def send_all_rows_from_table():
     while len(table.get_children()):
         first_id = table.get_children()[0]
         name = table.item(first_id, 'values')[0]
-        commentry = table.item(first_id, 'values')[4]
+        comment = table.item(first_id, 'values')[4]
         lat = table.item(first_id, 'values')[2]
         lon = table.item(first_id, 'values')[3]
 
-        send_to_Mementryo(name, commentry, lat, lon)
-        table.delete(first_id)
+        response = send_to_Memento(name, comment, lat, lon)
+        if response == 201:
+            table.delete(first_id)
+        else:
+            break
 
         check_table()
 
@@ -102,21 +103,24 @@ def check_table(*args):
     match len(table.get_children()):
         case 0:
             label_hint.config(text='keine Daten geladen')
+            button_Memento.config(state=tk.DISABLED)
         case 1:
             label_hint.config(text=f'{len(table.get_children())} Wegpunkt, Doppelklick für Karte')
+            button_Memento.config(state=tk.NORMAL)
         case _:
             label_hint.config(text=f'{len(table.get_children())} Wegpunkte, Doppelklick für Karte')
+            button_Memento.config(state=tk.NORMAL)
 
     match len(table.selection()):
         case 0:
-            btn_delete.config(state=tk.DISABLED)
-            btn_edit.config(state=tk.DISABLED)
+            button_delete.config(state=tk.DISABLED)
+            button_edit.config(state=tk.DISABLED)
         case 1:
-            btn_delete.config(state=tk.NORMAL)
-            btn_edit.config(state=tk.NORMAL)
+            button_delete.config(state=tk.NORMAL)
+            button_edit.config(state=tk.NORMAL)
         case _:
-            btn_delete.config(state=tk.NORMAL)
-            btn_edit.config(state=tk.DISABLED)
+            button_delete.config(state=tk.NORMAL)
+            button_edit.config(state=tk.DISABLED)
 
 
 def open_map(eventry):
@@ -192,22 +196,22 @@ scrollbar = ttk.Scrollbar(table, orient='vertical', command=table.yview)
 scrollbar.pack(side='right', fill='y')
 table.configure(yscrollcommand=scrollbar.set)
 
-btn_load = ttk.Button(window, text='Datei laden', command=load_gpx)
-btn_delete = ttk.Button(window, text='markierte Zeilen löschen', command=delete_selected)
-btn_edit = ttk.Button(window, text='markierten bearbeiten', command=edit_selected)
-btn_Mementryo = ttk.Button(window, text='Liste an Mementryo senden', command=send_all_rows_from_table)
+button_load = ttk.Button(window, text='Datei laden', command=load_gpx)
+button_delete = ttk.Button(window, text='markierte Zeilen löschen', command=delete_selected)
+button_edit = ttk.Button(window, text='markierten bearbeiten', command=edit_selected)
+button_Memento = ttk.Button(window, text='Liste an Memento senden', command=send_all_rows_from_table)
 
 label_hint = ttk.Label(window, text='keine Daten geladen')
 
 table.pack(expand=True, fill="both")
 label_hint.pack()
-btn_load.pack(side='left', padx=10, pady=10)
-btn_delete.pack(side='left', padx=10, pady=10)
-btn_delete.config(state=tk.DISABLED)
-btn_edit.pack(side='left', padx=10, pady=10)
-btn_edit.config(state=tk.DISABLED)
-btn_Mementryo.pack(side='left', padx=10, pady=10)
-btn_Mementryo.config(state=tk.DISABLED)
+button_load.pack(side='left', padx=10, pady=10)
+button_delete.pack(side='left', padx=10, pady=10)
+button_delete.config(state=tk.DISABLED)
+button_edit.pack(side='left', padx=10, pady=10)
+button_edit.config(state=tk.DISABLED)
+button_Memento.pack(side='left', padx=10, pady=10)
+button_Memento.config(state=tk.DISABLED)
 
 table.bind('<Double-1>', open_map)
 table.bind('<<TreeviewSelect>>', check_table)
