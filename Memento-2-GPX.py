@@ -26,17 +26,29 @@ def update_waypoints_with_symbols(waypoints, symbols):
 
 
 def transform_data(data):
-    field_names = ['name', 'comment', 'type', 'symbol', 'color', 'latitude', 'longitude']
-    
     for entry in data:
         fields = entry['fields']
         transformed_fields = {}
-        
-        for idx, field in enumerate(fields):
-            field_name = field_names[idx]
-            transformed_fields |= {field_name: field['value']}
-        
+
+        if len(fields) == 5:
+            transformed_fields |= {'name': fields[0]['value']}
+            transformed_fields |= {'comment': fields[1]['value']}
+            transformed_fields |= {'type': fields[2]['value']}
+            transformed_fields |= {'symbol': 'Crossing'}
+            transformed_fields |= {'color': '#FF00FF'}
+            transformed_fields |= {'latitude': fields[3]['value']}
+            transformed_fields |= {'longitude': fields[4]['value']}
+        else:
+            transformed_fields |= {'name': fields[0]['value']}
+            transformed_fields |= {'comment': fields[1]['value']}
+            transformed_fields |= {'type': fields[2]['value']}
+            transformed_fields |= {'symbol': fields[3]['value']}
+            transformed_fields |= {'color': fields[4]['value']}
+            transformed_fields |= {'latitude': fields[5]['value']}
+            transformed_fields |= {'longitude': fields[6]['value']}
+
         entry['fields'] = transformed_fields
+        #print(entry['fields'])
     
     return data
 
@@ -89,16 +101,12 @@ def create_json(data, filename):
 def main():
     waypoints = fetch_data(WAYPOINTS_API_URL)
     symbols = fetch_data(SYMBOLS_API_URL)
-    
+
     updated_waypoints = update_waypoints_with_symbols(waypoints, symbols)
     transformed_waypoints = transform_data(updated_waypoints)
 
     create_gpx(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.gpx')
     create_json(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.json')
-    
-    print("Aktualisierte Wegpunkte:")
-    print(transformed_waypoints)
-
 
 if __name__ == "__main__":
     main()
