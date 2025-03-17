@@ -16,7 +16,7 @@ def fetch_data(url):
 
 def update_waypoints_with_symbols(waypoints, symbols):
     symbol_dict = {symbol['id']: symbol['fields'][0]['value'] for symbol in symbols}
-    
+
     for waypoint in waypoints:
         for field in waypoint['fields']:
             if field['id'] == 15:  # Field "symbol"
@@ -26,30 +26,31 @@ def update_waypoints_with_symbols(waypoints, symbols):
 
 
 def transform_data(data):
+    default_fields = [{'id': 0, 'value': 'Name'}, {'id': 31, 'value': 'Hinweis'}, {'id': 1, 'value': 'new'}, {'id': 15, 'value': 'Crossing'}, {'id': 14, 'value': '#FF00FF'}, {'id': 27, 'value': 0.0}, {'id': 28, 'value': 0.0}]
+
     for entry in data:
         fields = entry['fields']
+
+        for field in range(len(fields)):
+            for default_field in range(len(default_fields)):
+                if default_fields[default_field]['id'] == fields[field]['id']:
+                    default_fields[default_field]['value'] = fields[field]['value']
+                    break
+
+        #print(f'{default_fields = }')
+
         transformed_fields = {}
+        transformed_fields |= {'name': default_fields[0]['value']}
+        transformed_fields |= {'comment': default_fields[1]['value']}
+        transformed_fields |= {'type': default_fields[2]['value']}
+        transformed_fields |= {'symbol': default_fields[3]['value']}
+        transformed_fields |= {'color': default_fields[4]['value']}
+        transformed_fields |= {'latitude': default_fields[5]['value']}
+        transformed_fields |= {'longitude': default_fields[6]['value']}
 
-        if len(fields) == 5:
-            transformed_fields |= {'name': fields[0]['value']}
-            transformed_fields |= {'comment': fields[1]['value']}
-            transformed_fields |= {'type': fields[2]['value']}
-            transformed_fields |= {'symbol': 'Crossing'}
-            transformed_fields |= {'color': '#FF00FF'}
-            transformed_fields |= {'latitude': fields[3]['value']}
-            transformed_fields |= {'longitude': fields[4]['value']}
-        else:
-            transformed_fields |= {'name': fields[0]['value']}
-            transformed_fields |= {'comment': fields[1]['value']}
-            transformed_fields |= {'type': fields[2]['value']}
-            transformed_fields |= {'symbol': fields[3]['value']}
-            transformed_fields |= {'color': fields[4]['value']}
-            transformed_fields |= {'latitude': fields[5]['value']}
-            transformed_fields |= {'longitude': fields[6]['value']}
-
+        #print(f'{transformed_fields = }')
         entry['fields'] = transformed_fields
-        #print(entry['fields'])
-    
+
     return data
 
 
@@ -107,6 +108,8 @@ def main():
 
     create_gpx(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.gpx')
     create_json(transformed_waypoints, 'D:\\OneDrive\\Dokumente\\GeoCaching\\gpx\\MementoWegpunkte.json')
+
+    print(f'{len(transformed_waypoints)} Wegpunkte exportiert')
 
 if __name__ == "__main__":
     main()
