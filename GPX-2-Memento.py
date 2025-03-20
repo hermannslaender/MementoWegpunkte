@@ -56,13 +56,13 @@ def edit_selected():
     btn_save.grid(row=4, column =1, padx=10, pady=10, sticky="W")
 
 
-def send_to_Memento(name = 'Test 1', commentry = 'Kommentar 1', lat = 51.000000, lon = 8.000000):
+def send_to_Memento(name = 'Test 1', comment = 'Kommentar 1', lat = 51.000000, lon = 8.000000):
     headers = {
         "Authorization": f"Bearer {MEMENTO_TOKEN}",
         "Content-Type": "application/json"
     }
 
-    values = "{'fields':[{'id': 0,'value': '" + name + "'},{'id': 31,'value': '" + commentry + "'},{'id': 1,'value': 'neu'},{'id': 14,'value': '#ffffff'},{'id': 2,'value': 'Dezimal'},{'id': 10,'value': " + str(lat) + "},{'id': 11,'value': " + str(lon) + "}]}"
+    values = "{'fields':[{'id': 0,'value': '" + name + "'},{'id': 31,'value': '" + comment + "'},{'id': 1,'value': 'Garmin'},{'id': 14,'value': '#ff00ff'},{'id': 2,'value': 'Dezimal'},{'id': 10,'value': " + str(lat) + "},{'id': 11,'value': " + str(lon) + "}]}"
     print(f'{values = }')
 
     response = requests.post(WAYPOINTS_API_URL, headers=headers, data=values)
