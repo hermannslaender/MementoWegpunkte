@@ -5,6 +5,8 @@ from tkinter import ttk
 import webbrowser
 import requests
 from MementoToken import MEMENTO_TOKEN
+import pyperclip
+import re
 WAYPOINTS_API_URL = f'https://api.mementodatabase.com/v1/libraries/2jwnhsD0k/entries?token={MEMENTO_TOKEN}'
 
 
@@ -169,6 +171,84 @@ def delete_selected():
     check_table()
 
 
+def load_clipboard():
+    clipboard_content = pyperclip.paste()
+    clipboard_content = clipboard_content.replace(",", ".")
+    print(f"{clipboard_content = }")
+
+    regex = r"(Lat|lat) -?([0-5]?\d\.\d{0,6})°? (Lon|lon) -?((?:180|1[0-7]\d|[1-9]?\d)\.\d{0,6})°?"
+    matches = re.findall(regex, clipboard_content)
+    print(f"{matches = }")
+
+    for match in matches:
+        print(f"{match = }")
+
+        name = "Lat/Lon"
+        symbol = ""
+        latitude = float(match[1])
+        longitude = float(match[3])
+        commentry = match
+        data = (name, symbol, latitude, longitude, commentry)
+        table.insert(parent="", index=tk.END, values=data, tags=('font',))
+
+    regex = r"(N|S) ?([0-5]?\d)° ([0-5]?\d)' ((?:[0-5]?\d)\.\d{0,3})\" (E|W) ?(180|1[0-7]\d|[1-9]?\d|00\d)° ([0-5]?\d)' ((?:[0-5]?\d)\.\d{0,3})\""
+    matches = re.findall(regex, clipboard_content)
+    print(f"{matches = }")
+
+    for match in matches:
+        print(f"{match = }")
+
+        name = "Grad/Minuten/Sekunden"
+        symbol = ""
+        latitude = round(float(match[1]) + float(match[2])/60 + float(match[3])/3600, 6)
+        if match[0] == "S":
+            latitude *= -1
+        longitude = round(float(match[5]) + float(match[6])/60 + float(match[7])/3600 ,6)
+        if match[4] == "W":
+            longitude *= -1
+        commentry = match
+        data = (name, symbol, latitude, longitude, commentry)
+        table.insert(parent="", index=tk.END, values=data, tags=('font',))
+
+    regex = r"(N|S) ?((?:[0-5]?\d)\.\d{,6})°? ?(E|W) ?((?:180|1[0-7]\d|[1-9]?\d|00\d)\. ?\d{0,6})°?"
+    matches = re.findall(regex, clipboard_content)
+    print(f"{matches = }")
+
+    for match in matches:
+        print(f"{match = }")
+
+        name = "Grad/Minuten"
+        symbol = ""
+        latitude = float(match[1])
+        if match[0] == "S":
+            latitude *= -1
+        longitude = float(match[3])
+        if match[2] == "W":
+            longitude *= -1
+        commentry = match
+        data = (name, symbol, latitude, longitude, commentry)
+        table.insert(parent="", index=tk.END, values=data, tags=('font',))
+
+    regex = r"(N|S) ?([0-5]?\d)°? ?((?:[0-5]?\d)\.\d{3})'? ?(E|W) ?(180|1[0-7]\d|[1-9]?\d|00\d)°? ?((?:[0-5]?\d)\.\d{3})'?"
+    matches = re.findall(regex, clipboard_content)
+    print(f"{matches = }")
+
+    for match in matches:
+        print(f"{match = }")
+
+        name = "Grad/Minuten"
+        symbol = ""
+        latitude = round(float(match[1]) + float(match[2])/60, 6)
+        if match[0] == "S":
+            latitude *= -1
+        longitude = round(float(match[4]) + float(match[5])/60, 6)
+        if match[3] == "W":
+            longitude *= -1
+        commentry = match
+        data = (name, symbol, latitude, longitude, commentry)
+        table.insert(parent="", index=tk.END, values=data, tags=('font',))
+
+
 
 window = tk.Tk()
 window.geometry('1100x600')
@@ -197,6 +277,7 @@ scrollbar.pack(side='right', fill='y')
 table.configure(yscrollcommand=scrollbar.set)
 
 button_load = ttk.Button(window, text='Datei laden', command=load_gpx)
+button_clipboard = ttk.Button(window, text='Koordinaten aus der Zwischenablage', command=load_clipboard)
 button_delete = ttk.Button(window, text='markierte Zeilen löschen', command=delete_selected)
 button_edit = ttk.Button(window, text='markierten bearbeiten', command=edit_selected)
 button_Memento = ttk.Button(window, text='Liste an Memento senden', command=send_all_rows_from_table)
@@ -206,6 +287,7 @@ label_hint = ttk.Label(window, text='keine Daten geladen')
 table.pack(expand=True, fill="both")
 label_hint.pack()
 button_load.pack(side='left', padx=10, pady=10)
+button_clipboard.pack(side='left', padx=10, pady=10)
 button_delete.pack(side='left', padx=10, pady=10)
 button_delete.config(state=tk.DISABLED)
 button_edit.pack(side='left', padx=10, pady=10)
