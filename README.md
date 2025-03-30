@@ -5,4 +5,4 @@ Holt sich über API zwei meiner Memento Datenbanken und generiert daraus eine GP
 
 ## GPX-2-Memento
 Kann eine GPX von meinem Garmin in eine Tabelle einlesen. Dort kann ich löschen und auf der Karte anzeigen und dann über API an Memento senden. 
-
+Zusätzlich kann jetzt auch die System-Zwischenablage nach Koordinatenin verschiedenen Formaten durchsucht werden, die dann in die Tabelle übernommen werden.
